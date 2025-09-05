@@ -18,6 +18,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,22 +29,20 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dev tools
+      - name: Install deps
         run: npm ci
 
-      - name: Lint OpenAPI
-        run: npm run lint:openapi
-
-      - name: Bundle OpenAPI
-        run: npm run build:openapi
+      - name: Repo CI tasks (lint, validate, bundle)
+        run: npm run ci:all
+        # entspricht:
+        # npm run validate:schema && npm run lint:openapi && npm run build:openapi
 
       - name: Prepare site
         run: |
           mkdir -p public
           cp -r site/* public/
           cp dist/openapi.bundle.yaml public/openapi.yaml
-          echo "User-agent: *
-Allow: /" > public/robots.txt
+          echo "User-agent: *\nAllow: /" > public/robots.txt
           echo "<h1>Not Found</h1>" > public/404.html
 
       - name: Upload artifact

@@ -21,14 +21,8 @@ jobs:
       - name: Install dev tools
         run: npm ci
 
-      - name: Validate JSON examples against schema
-        run: npm run validate:schema
-
-      - name: Lint OpenAPI
-        run: npm run lint:openapi
-
-      - name: Bundle OpenAPI (artifact)
-        run: npm run build:openapi
+      - name: Run repo CI tasks
+        run: npm run ci:all
 
       - name: Upload bundled OpenAPI
         uses: actions/upload-artifact@v4

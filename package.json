@@ -1,14 +1,16 @@
 {
-  "name": "osap-spec",
-  "private": true,
-  "devDependencies": {
-    "@redocly/cli": "^1.14.0",
-    "ajv-cli": "^5.0.0",
-    "ajv-formats": "^3.0.0"
-  },
   "scripts": {
     "validate:schema": "ajv -c ajv-formats -s schemas/osap-event.schema.json -d examples/*.json --strict=true --spec=draft2020",
     "lint:openapi": "redocly lint openapi.yaml",
-    "build:openapi": "redocly bundle openapi.yaml -o dist/openapi.bundle.yaml"
+    "build:openapi": "redocly bundle openapi.yaml -o dist/openapi.bundle.yaml",
+    "ci:all": "npm run validate:schema && npm run lint:openapi && npm run build:openapi",
+    "prepare": "husky",
+    "precommit": "npm run validate:schema && npm run lint:openapi"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^1.14.0",
+    "ajv-cli": "^5.0.0",
+    "ajv-formats": "^3.0.0",
+    "husky": "^9.1.7"
   }
 }
