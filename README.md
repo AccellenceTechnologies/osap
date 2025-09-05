@@ -3,8 +3,7 @@
 [![CI](https://github.com/AccellenceTechnologies/osap/actions/workflows/ci.yml/badge.svg)](https://github.com/AccellenceTechnologies/osap/actions/workflows/ci.yml)
 [![Pages](https://github.com/AccellenceTechnologies/osap/actions/workflows/pages.yml/badge.svg)](https://accellencetechnologies.github.io/osap/)
 
-OSAP (Open Secure Alarm Protocol) ist ein offenes, sicheres, JSON-over-HTTPS Protokoll für den Austausch von Alarm-Events 
-zwischen Video Management Systemen (VMS) und Notruf-/Service-Leitstellen (NSL/ARC).
+OSAP (Open Secure Alarm Protocol) ist ein offenes, sicheres, JSON-over-HTTPS Protokoll für den Austausch von Alarm-Events zwischen Video Management Systemen (VMS) und Notruf-/Service-Leitstellen (NSL/ARC).
 
 - 🔒 **Secure by design** – TLS/HTTPS, mTLS optional, JSON Schema Validation  
 - 🌍 **Open** – Apache-2.0 Lizenz, öffentlich auf GitHub  
@@ -27,6 +26,37 @@ zwischen Video Management Systemen (VMS) und Notruf-/Service-Leitstellen (NSL/AR
 ## 🤝 Contribution
 Wir freuen uns über Issues, PRs und Diskussionen.  
 Siehe [CONTRIBUTING.md](./CONTRIBUTING.md) und [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
+
+### 🔧 Lokales Setup für Contributor
+Damit vor jedem Commit automatisch die wichtigsten Checks laufen (Schema-Validation, OpenAPI-Lint), nutzen wir **Husky (v9)** für Git-Hooks.
+
+1. Dependencies installieren:
+   ```bash
+   npm ci
+   ```
+
+2. Husky initialisieren (einmalig):
+   ```bash
+   npx husky init
+   ```
+   ➡️ erstellt `.husky/` und einen Beispiel-Hook.
+
+3. Pre-commit Hook anpassen (`.husky/pre-commit`):
+   ```sh
+   #!/usr/bin/env sh
+   . "$(dirname -- "$0")/_/husky.sh"
+
+   npm run precommit
+   ```
+
+4. Sicherstellen, dass in `package.json` ein `precommit`-Script existiert:
+   ```json
+   "scripts": {
+     "precommit": "npm run validate:schema && npm run lint:openapi"
+   }
+   ```
+
+Ab jetzt werden die Checks vor jedem Commit automatisch ausgeführt. Fehlerhafte Commits werden blockiert.
 
 ## 🔒 Security
 Bitte keine Sicherheitslücken in Issues posten.  
