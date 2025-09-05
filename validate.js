@@ -37,7 +37,8 @@ try {
 }
 
 // Alle Example-Dateien suchen
-const files = glob.sync("examples/*.json");
+const { globSync } = require("glob");
+const files = globSync("examples/*.json");
 if (files.length === 0) {
   console.warn("ℹ️ Keine Beispiel-Dateien gefunden (examples/*.json).");
   process.exit(0);
