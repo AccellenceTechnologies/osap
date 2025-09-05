@@ -1,0 +1,25 @@
+{
+  "envelope": {
+    "id": "2c6b3f7c-8e1a-4c7a-9b2e-3a79f0c3b0b2",
+    "ts": "2025-09-05T12:05:00Z",
+    "producer": {
+      "vendor": "vimacc",
+      "product": "VMS-Core",
+      "version": "9.2.0"
+    },
+    "correlation": {
+      "site_id": "SITE-001122",
+      "device_id": "CAM-Front-01"
+    }
+  },
+  "event": {
+    "schema": "osap.v1.vds-style",
+    "category": "intrusion",
+    "code": "VDS-1100",
+    "qualifier": "RESTORE",
+    "severity": 2,
+    "status": "UPDATED",
+    "text": "Door closed again (front entrance)",
+    "occurrence_ts": "2025-09-05T12:04:58Z"
+  }
+}

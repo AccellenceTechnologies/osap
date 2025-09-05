@@ -1,0 +1,4 @@
+body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; background: #fff; z-index: 10; }
+.brand strong { font-weight: 800; margin-right: 6px; }
+.topbar a { margin-left: 14px; text-decoration: none; color: #0366d6; }

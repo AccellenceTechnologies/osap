@@ -1,0 +1,40 @@
+{
+  "envelope": {
+    "id": "1b6b2f6b-7e9a-4b7a-9e3e-2b69f0b2a9a1",
+    "ts": "2025-09-05T11:22:33Z",
+    "producer": {
+      "vendor": "vimacc",
+      "product": "VMS-Core",
+      "version": "9.2.0"
+    },
+    "correlation": {
+      "site_id": "SITE-001122",
+      "device_id": "CAM-Front-01"
+    }
+  },
+  "event": {
+    "schema": "osap.v1.vds-style",
+    "category": "intrusion",
+    "code": "VDS-1100",
+    "qualifier": "ALARM",
+    "severity": 7,
+    "status": "NEW",
+    "text": "Door forced open (front entrance)",
+    "occurrence_ts": "2025-09-05T11:22:30Z"
+  },
+  "attachments": [
+    {
+      "id": "att-1",
+      "kind": "image",
+      "mime_type": "image/jpeg",
+      "encoding": "base64",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD",
+      "captured_ts": "2025-09-05T11:22:31Z",
+      "meta": {
+        "width": 1280,
+        "height": 720,
+        "camera": "CAM-Front-01"
+      }
+    }
+  ]
+}

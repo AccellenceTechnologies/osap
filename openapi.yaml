@@ -1,0 +1,341 @@
+openapi: 3.0.3
+info:
+  title: OSAP - Open Secure Alarm Protocol
+  version: v1alpha
+  description: >
+    OSAP ist ein offenes, sicheres, JSON-over-HTTPS Protokoll für den Austausch
+    von Alarm-Events zwischen VMS und NSL/ARC. Es lehnt sich an die VdS-Eventsemantik an,
+    ohne Zertifizierungsanspruch. Medien-Typ: `application/vnd.osap+json;v=1`.
+
+servers:
+  - url: https://api.example.com/osap
+    description: Beispiel-Server (ersetzen)
+
+tags:
+  - name: Events
+    description: Entgegennahme und Quittierung von Alarm-Events
+  - name: System
+    description: Healthcheck und Metadaten
+
+paths:
+  /v1/health:
+    get:
+      tags: [System]
+      summary: Healthcheck
+      operationId: getHealth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  version: { type: string, example: v1alpha }
+  /v1/events:
+    post:
+      tags: [Events]
+      summary: Alarm-Event übertragen
+      description: >
+        Nimmt ein einzelnes OSAP-Event entgegen. Bilder/Beweismittel können als Base64
+        im selben Request unter `attachments[]` eingebettet werden.
+      operationId: postEvent
+      security:
+        - MutualTLS: []
+        - OAuth2ClientCredentials: [osap.write]
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/vnd.osap+json;v=1:
+            schema:
+              $ref: '#/components/schemas/OsapEnvelope'
+            examples:
+              example1:
+                summary: VdS-ähnlicher Einbruch-Alarm mit Bild
+                value:
+                  envelope:
+                    id: "98e7a9e8-3a3e-4f2a-9c61-0a8f9b1f2d11"
+                    ts: "2025-09-05T11:22:33.456Z"
+                    producer:
+                      vendor: "vimacc"
+                      product: "VMS-Core"
+                      version: "9.2.0"
+                      instance_id: "vimacc-eu-central-1"
+                    correlation:
+                      site_id: "SITE-001122"
+                      account_id: "ACC-7788"
+                      area_id: "AREA-FrontDoor"
+                      device_id: "CAM-Front-01"
+                      session_id: "sess-47392"
+                  event:
+                    schema: "osap.v1.vds-style"
+                    category: "intrusion"
+                    code: "VDS-1100"
+                    qualifier: "ALARM"
+                    severity: 7
+                    status: "NEW"
+                    text: "Door forced open (front entrance)"
+                    occurrence_ts: "2025-09-05T11:22:30.000Z"
+                    vendor_ext:
+                      vds:
+                        class: "EINBRUCH/ÖFFNUNG"
+                        priority: 1
+                  attachments:
+                    - id: "att-1"
+                      kind: "image"
+                      mime_type: "image/jpeg"
+                      encoding: "base64"
+                      data: "/9j/4AAQSkZJRgABAQAAAQABAAD...truncatedBase64..."
+                      captured_ts: "2025-09-05T11:22:31Z"
+                      meta:
+                        width: 1280
+                        height: 720
+                        camera: "CAM-Front-01"
+                  delivery:
+                    retry: { attempts: 0 }
+      responses:
+        '202':
+          description: Angenommen (asynchron verarbeitet)
+          headers:
+            OSAP-Accepted-Id:
+              description: Echo von `envelope.id` oder serverseitige Tracking-ID.
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AckResponse'
+              examples:
+                accepted:
+                  value:
+                    accepted: true
+                    id: "98e7a9e8-3a3e-4f2a-9c61-0a8f9b1f2d11"
+        '400':
+          description: Ungültiger Payload
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Nicht autorisiert
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '415':
+          description: Unsupported Media Type (erwartet `application/vnd.osap+json;v=1`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429':
+          description: Rate limit überschritten
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500':
+          description: Serverfehler
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /v1/events/{id}/ack:
+    post:
+      tags: [Events]
+      summary: Event quittieren/fortschreiben (ARC/NSL → VMS)
+      description: >
+        Optionaler Rückkanal: Leitstelle kann Statusübergänge, Kategorien
+        oder Operator-Notizen zurückmelden.
+      operationId: ackEvent
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+          description: `envelope.id` des ursprünglichen Events
+      security:
+        - MutualTLS: []
+        - OAuth2ClientCredentials: [osap.write]
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/vnd.osap+json;v=1:
+            schema:
+              $ref: '#/components/schemas/AckRequest'
+      responses:
+        '200':
+          description: Quittiert
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AckResponse' }
+        '400':
+          description: Ungültiger Payload
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+  securitySchemes:
+    MutualTLS:
+      type: mutualTLS
+      description: Client-Zertifikatsauthentisierung (mTLS)
+    OAuth2ClientCredentials:
+      type: oauth2
+      description: OAuth2 Client Credentials
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.example.com/oauth/token
+          scopes:
+            osap.write: OSAP-Events senden/acknowledgen
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    OsapEnvelope:
+      type: object
+      required: [envelope, event]
+      properties:
+        envelope:
+          type: object
+          required: [id, ts, producer]
+          properties:
+            id: { type: string, description: Eindeutige Event-Nachrichten-ID (UUID empfohlen) }
+            ts: { type: string, format: date-time, description: Sende-/Erzeugungszeitpunkt der Nachricht }
+            producer:
+              type: object
+              required: [vendor, product]
+              properties:
+                vendor: { type: string, example: vimacc }
+                product: { type: string, example: VMS-Core }
+                version: { type: string, example: 9.2.0 }
+                instance_id: { type: string, example: vimacc-eu-central-1 }
+            correlation:
+              type: object
+              description: Schlüsselinformationen zur Zuordnung
+              properties:
+                site_id: { type: string }
+                account_id: { type: string }
+                area_id: { type: string }
+                device_id: { type: string }
+                sensor_id: { type: string }
+                session_id: { type: string }
+        event:
+          $ref: '#/components/schemas/OsapEvent'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+        delivery:
+          type: object
+          properties:
+            retry:
+              type: object
+              properties:
+                attempts: { type: integer, minimum: 0 }
+                last_error: { type: string }
+    OsapEvent:
+      type: object
+      required: [schema, category, code, severity, status, occurrence_ts]
+      properties:
+        schema:
+          type: string
+          example: osap.v1.vds-style
+          description: Profil/Mapping (z. B. VdS-Style)
+        category:
+          type: string
+          description: Oberkategorie (z. B. intrusion, fire, system, tamper)
+          example: intrusion
+        code:
+          type: string
+          description: Ereigniscode gemäß Profil (z. B. VDS-1100)
+          example: VDS-1100
+        qualifier:
+          type: string
+          description: ALARM|RESTORE|TEST|TROUBLE etc.
+          example: ALARM
+        severity:
+          type: integer
+          minimum: 0
+          maximum: 10
+          example: 7
+        status:
+          type: string
+          description: NEW|UPDATED|CLOSED
+          example: NEW
+        text:
+          type: string
+          description: Menschlich lesbare Kurzbeschreibung
+        occurrence_ts:
+          type: string
+          format: date-time
+          description: Zeitpunkt der Auslösung
+        vendor_ext:
+          type: object
+          additionalProperties: true
+          description: Hersteller-/Profil-spezifische Felder
+    Attachment:
+      type: object
+      required: [id, kind, mime_type]
+      properties:
+        id: { type: string, example: att-1 }
+        kind:
+          type: string
+          description: image|video|audio|document|metadata
+          example: image
+        mime_type:
+          type: string
+          example: image/jpeg
+        encoding:
+          type: string
+          description: base64, none (bei `url`)
+          example: base64
+        data:
+          type: string
+          description: Base64-kodierter Inhalt (wenn `encoding=base64`)
+        url:
+          type: string
+          format: uri
+          description: Alternative zum Inline-Transfer
+        captured_ts:
+          type: string
+          format: date-time
+        meta:
+          type: object
+          additionalProperties: true
+    AckRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          description: RECEIVED|IN_PROGRESS|DISPATCHED|RESOLVED|REJECTED
+          example: RECEIVED
+        note:
+          type: string
+          description: Operator-Notiz
+        operator_id:
+          type: string
+          description: Kennung der Leitstellen-Operator:in
+        ts:
+          type: string
+          format: date-time
+          description: Zeitpunkt der Quittierung
+    AckResponse:
+      type: object
+      properties:
+        accepted: { type: boolean, example: true }
+        id: { type: string, description: Echo der Event-ID }
+        status: { type: string }
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          example: bad_request
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true

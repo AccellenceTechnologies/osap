@@ -1,0 +1,281 @@
+{
+  "$id": "https://example.org/schemas/osap-event.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OSAP v1alpha Event Envelope",
+  "type": "object",
+  "required": [
+    "envelope",
+    "event"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "envelope": {
+      "type": "object",
+      "required": [
+        "id",
+        "ts",
+        "producer"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Eindeutige Event-Nachrichten-ID",
+          "examples": [
+            "98e7a9e8-3a3e-4f2a-9c61-0a8f9b1f2d11"
+          ]
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Zeitpunkt der Nachrichtenerzeugung/-versendung"
+        },
+        "producer": {
+          "type": "object",
+          "required": [
+            "vendor",
+            "product"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "vendor": {
+              "type": "string",
+              "minLength": 1
+            },
+            "product": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string"
+            },
+            "instance_id": {
+              "type": "string"
+            }
+          }
+        },
+        "correlation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "site_id": {
+              "type": "string"
+            },
+            "account_id": {
+              "type": "string"
+            },
+            "area_id": {
+              "type": "string"
+            },
+            "device_id": {
+              "type": "string"
+            },
+            "sensor_id": {
+              "type": "string"
+            },
+            "session_id": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "event": {
+      "$ref": "#/$defs/OsapEvent"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Attachment"
+      }
+    },
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "retry": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "attempts": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "last_error": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "OsapEvent": {
+      "type": "object",
+      "required": [
+        "schema",
+        "category",
+        "code",
+        "severity",
+        "status",
+        "occurrence_ts"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "type": "string",
+          "description": "Profil/Mapping (z. B. osap.v1.vds-style)",
+          "examples": [
+            "osap.v1.vds-style"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "description": "Oberkategorie",
+          "enum": [
+            "intrusion",
+            "fire",
+            "system",
+            "tamper",
+            "safety",
+            "aux"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "description": "Ereigniscode gem. Profil (z. B. VDS-1100)"
+        },
+        "qualifier": {
+          "type": "string",
+          "description": "ALARM/RESTORE/TEST/TROUBLE etc.",
+          "enum": [
+            "ALARM",
+            "RESTORE",
+            "TEST",
+            "TROUBLE",
+            "INFO",
+            "SUPERVISORY"
+          ]
+        },
+        "severity": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "status": {
+          "type": "string",
+          "description": "Nachrichtenstatus",
+          "enum": [
+            "NEW",
+            "UPDATED",
+            "CLOSED"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "description": "Kurzbeschreibung",
+          "maxLength": 2048
+        },
+        "occurrence_ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Zeitpunkt der Ausl\u00f6sung"
+        },
+        "vendor_ext": {
+          "type": "object",
+          "description": "Herstellerspezifische Felder",
+          "additionalProperties": true
+        }
+      }
+    },
+    "Attachment": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "mime_type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "image",
+            "video",
+            "audio",
+            "document",
+            "metadata"
+          ]
+        },
+        "mime_type": {
+          "type": "string"
+        },
+        "encoding": {
+          "type": "string",
+          "enum": [
+            "base64",
+            "none"
+          ],
+          "default": "base64"
+        },
+        "data": {
+          "type": "string",
+          "description": "Base64-kodierter Inhalt, wenn encoding=base64",
+          "contentEncoding": "base64"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Alternative zum Inline-Transfer"
+        },
+        "captured_ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "encoding": {
+                "const": "base64"
+              }
+            },
+            "required": [
+              "encoding"
+            ]
+          },
+          "then": {
+            "required": [
+              "data"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "encoding": {
+                "const": "none"
+              }
+            },
+            "required": [
+              "encoding"
+            ]
+          },
+          "then": {
+            "required": [
+              "url"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

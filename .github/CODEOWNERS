@@ -1,0 +1,8 @@
+# CODEOWNERS definiert Reviewer-Zuständigkeiten für Pull Requests.
+
+# Default: alle Dateien müssen von Core-Maintainern reviewt werden
+*       @AccellenceTechnologies/core-maintainers
+
+# Beispiele: spezifische Zuordnung
+# schemas/*   @AccellenceTechnologies/schema-team
+# site/*      @AccellenceTechnologies/docs-team
