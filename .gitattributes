@@ -16,3 +16,11 @@
 # ------------------------------
 # Referenzimplementierungen in Code zählen lassen
 /reference/**       -linguist-vendored
+
+# ------------------------------
+# LineEndings immer LF
+* text=auto eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.md text eol=lf

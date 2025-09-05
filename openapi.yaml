@@ -6,17 +6,14 @@ info:
     OSAP ist ein offenes, sicheres, JSON-over-HTTPS Protokoll für den Austausch
     von Alarm-Events zwischen VMS und NSL/ARC. Es lehnt sich an die VdS-Eventsemantik an,
     ohne Zertifizierungsanspruch. Medien-Typ: `application/vnd.osap+json;v=1`.
-
 servers:
   - url: https://api.example.com/osap
     description: Beispiel-Server (ersetzen)
-
 tags:
   - name: Events
     description: Entgegennahme und Quittierung von Alarm-Events
   - name: System
     description: Healthcheck und Metadaten
-
 paths:
   /v1/health:
     get:
@@ -31,8 +28,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  status: { type: string, example: ok }
-                  version: { type: string, example: v1alpha }
+                  status:
+                    type: string
+                    example: ok
+                  version:
+                    type: string
+                    example: v1alpha
   /v1/events:
     post:
       tags: [Events]
@@ -94,14 +95,16 @@ paths:
                         height: 720
                         camera: "CAM-Front-01"
                   delivery:
-                    retry: { attempts: 0 }
+                    retry:
+                      attempts: 0
       responses:
         '202':
           description: Angenommen (asynchron verarbeitet)
           headers:
             OSAP-Accepted-Id:
-              description: Echo von `envelope.id` oder serverseitige Tracking-ID.
-              schema: { type: string }
+              description: "Echo von `envelope.id` oder serverseitige Tracking-ID."
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -115,28 +118,32 @@ paths:
           description: Ungültiger Payload
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Error' }
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Nicht autorisiert
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Error' }
+              schema:
+                $ref: '#/components/schemas/Error'
         '415':
-          description: Unsupported Media Type (erwartet `application/vnd.osap+json;v=1`)
+          description: "Unsupported Media Type (erwartet `application/vnd.osap+json;v=1`)"
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Error' }
+              schema:
+                $ref: '#/components/schemas/Error'
         '429':
           description: Rate limit überschritten
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Error' }
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Serverfehler
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Error' }
-
+              schema:
+                $ref: '#/components/schemas/Error'
   /v1/events/{id}/ack:
     post:
       tags: [Events]
@@ -149,8 +156,9 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string }
-          description: `envelope.id` des ursprünglichen Events
+          schema:
+            type: string
+          description: "`envelope.id` des ursprünglichen Events"
       security:
         - MutualTLS: []
         - OAuth2ClientCredentials: [osap.write]
@@ -166,13 +174,14 @@ paths:
           description: Quittiert
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/AckResponse' }
+              schema:
+                $ref: '#/components/schemas/AckResponse'
         '400':
           description: Ungültiger Payload
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Error' }
-
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     MutualTLS:
@@ -190,7 +199,6 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
-
   schemas:
     OsapEnvelope:
       type: object
@@ -200,16 +208,29 @@ components:
           type: object
           required: [id, ts, producer]
           properties:
-            id: { type: string, description: Eindeutige Event-Nachrichten-ID (UUID empfohlen) }
-            ts: { type: string, format: date-time, description: Sende-/Erzeugungszeitpunkt der Nachricht }
+            id:
+              type: string
+              description: Eindeutige Event-Nachrichten-ID (UUID empfohlen)
+            ts:
+              type: string
+              format: date-time
+              description: Sende-/Erzeugungszeitpunkt der Nachricht
             producer:
               type: object
               required: [vendor, product]
               properties:
-                vendor: { type: string, example: vimacc }
-                product: { type: string, example: VMS-Core }
-                version: { type: string, example: 9.2.0 }
-                instance_id: { type: string, example: vimacc-eu-central-1 }
+                vendor:
+                  type: string
+                  example: vimacc
+                product:
+                  type: string
+                  example: VMS-Core
+                version:
+                  type: string
+                  example: 9.2.0
+                instance_id:
+                  type: string
+                  example: vimacc-eu-central-1
             correlation:
               type: object
               description: Schlüsselinformationen zur Zuordnung
@@ -232,8 +253,11 @@ components:
             retry:
               type: object
               properties:
-                attempts: { type: integer, minimum: 0 }
-                last_error: { type: string }
+                attempts:
+                  type: integer
+                  minimum: 0
+                last_error:
+                  type: string
     OsapEvent:
       type: object
       required: [schema, category, code, severity, status, occurrence_ts]
@@ -278,7 +302,9 @@ components:
       type: object
       required: [id, kind, mime_type]
       properties:
-        id: { type: string, example: att-1 }
+        id:
+          type: string
+          example: att-1
         kind:
           type: string
           description: image|video|audio|document|metadata
@@ -324,9 +350,14 @@ components:
     AckResponse:
       type: object
       properties:
-        accepted: { type: boolean, example: true }
-        id: { type: string, description: Echo der Event-ID }
-        status: { type: string }
+        accepted:
+          type: boolean
+          example: true
+        id:
+          type: string
+          description: Echo der Event-ID
+        status:
+          type: string
     Error:
       type: object
       required: [error, message]
