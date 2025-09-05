@@ -1,2 +1,18 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# .gitattributes for GitHub Linguist
+# Siehe: https://github.com/github/linguist
+
+# ------------------------------
+# Doku / Website-Dateien nicht in Sprach-Statistik einbeziehen
+/site/**              linguist-documentation
+/site/**              linguist-vendored
+/site/assets/**       linguist-generated
+
+# ------------------------------
+# Specs und Schemas explizit als YAML / JSON zählen
+/openapi.yaml         linguist-language=YAML
+/schemas/**           linguist-language=JSON
+/examples/**          linguist-language=JSON
+
+# ------------------------------
+# Referenzimplementierungen in Code zählen lassen
+/reference/**       -linguist-vendored
